@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"newsgateway/api"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -10,8 +13,37 @@ import (
 
 // Последние новости
 func apiNewsLatest(rw http.ResponseWriter, r *http.Request) {
+	page, err := strconv.Atoi(mux.Vars(r)["page"])
+	if err != nil || page < 1 {
+		page = 1
+	}
+	var limit string = fmt.Sprintf("%d", NEWS_PER_PAGE)
+	var offset string = fmt.Sprintf("%d", NEWS_PER_PAGE*(page-1))
+
+	apiNews, err := api.New("news")
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, "Problem with news service!")
+		return
+	}
+	var news []api.Post
+	err = apiNews.Get(&news, "/api/news/latest", map[string]string{"limit": limit, "offset": offset})
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(rw, "Problem with news service: %s\n", err.Error())
+		return
+	}
+
+	json_line, err := json.Marshal(news)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+
 	rw.WriteHeader(http.StatusOK)
-	fmt.Fprintln(rw, "Not implemented")
+	rw.Write(json_line)
 }
 
 // Информация о новости по ID
