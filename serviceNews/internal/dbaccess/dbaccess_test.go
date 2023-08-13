@@ -160,7 +160,7 @@ func TestStore_PostGetLast(t *testing.T) {
 			t.Errorf("Can't insert posts: %v", err)
 			return
 		}
-		posts, err := s.PostGetLast(10)
+		posts, err := s.PostGetLast(10, 0)
 		if err != nil {
 			t.Errorf("Can't gat posts: %v", err)
 			return
@@ -176,4 +176,58 @@ func TestStore_PostGetLast(t *testing.T) {
 			t.Errorf("First id: expected 1, found: %v", posts[0].Id)
 		}
 	})
+}
+
+func TestStore_PostGetById(t *testing.T) {
+	t.Run("Main", func(t *testing.T) {
+		s, err := New(TestDSN)
+		if err != nil {
+			t.Errorf("Can't connect to DB: %v", err)
+			return
+		}
+		_, err = s.db.Exec(context.Background(), "DELETE FROM posts;")
+		if err != nil {
+			t.Errorf("Can't cleanup posts: %v", err)
+			return
+		}
+		_, err = s.db.Exec(context.Background(), "DELETE FROM sources;")
+		if err != nil {
+			t.Errorf("Can't cleanup sources: %v", err)
+			return
+		}
+		var sql string = `INSERT INTO sources
+				(id, link, fetchUpdates, defaultInterval)
+			VALUES
+				(1, 'https://example.com/feed', 'on', 5);`
+		_, err = s.db.Exec(context.Background(), sql)
+		if err != nil {
+			t.Errorf("Can't insert sources: %v", err)
+			return
+		}
+		sql = `INSERT INTO posts
+				(id, source, title, content, pubTime, link, guid)
+			VALUES
+				(1, 1, 'title 1', 'content 1', 1688924657, 'https://example.com/n1', 'aaaa'),
+				(2, 1, 'title 2', 'content 2', 1688924667, 'https://example.com/n2', 'bbbb'),
+				(3, 1, 'title 3', 'content 3', 1688924647, 'https://example.com/n3', 'cccc'),
+				(4, 1, 'title 4', 'content 4', 1688924627, 'https://example.com/n4', 'dddd');`
+		_, err = s.db.Exec(context.Background(), sql)
+		if err != nil {
+			t.Errorf("Can't insert posts: %v", err)
+			return
+		}
+
+		for id := 4; id > 0; id-- {
+			p, err := s.PostGetById(id)
+			if err != nil {
+				t.Errorf("Can't get post %v: %v", id, err)
+				return
+			}
+			if p.Id != id {
+				t.Errorf("Try to get post %v, but found %v", id, p.Id)
+				return
+			}
+		}
+	})
+
 }

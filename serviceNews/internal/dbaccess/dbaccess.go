@@ -125,7 +125,7 @@ func (s *Store) PostAdd(p Post) (int, error) {
 	return id, nil
 }
 
-func (s *Store) PostGetLast(count int) ([]Post, error) {
+func (s *Store) PostGetLast(count int, offset int) ([]Post, error) {
 	rv := make([]Post, 0)
 	var sql string = `SELECT
 			id,
@@ -137,8 +137,9 @@ func (s *Store) PostGetLast(count int) ([]Post, error) {
 			guid
 		FROM posts
 		ORDER BY pubTime DESC
-		LIMIT $1;`
-	r, err := s.db.Query(context.Background(), sql, count)
+		LIMIT $2
+		OFFSET $1;`
+	r, err := s.db.Query(context.Background(), sql, offset, count)
 	if err != nil {
 		return rv, err
 	}
@@ -156,5 +157,37 @@ func (s *Store) PostGetLast(count int) ([]Post, error) {
 		rv = append(rv, p)
 	}
 	r.Close()
+	return rv, nil
+}
+
+func (s *Store) PostGetById(id int) (Post, error) {
+	var rv Post
+	var sql string = `SELECT
+			id,
+			source,
+			title,
+			content,
+			pubTime,
+			link,
+			guid
+		FROM posts
+		WHERE id = $1`
+	r, err := s.db.Query(context.Background(), sql, id)
+	if err != nil {
+		return rv, err
+	}
+	defer r.Close()
+	if !r.Next() {
+		return rv, errors.New("Post not found!")
+	}
+	r.Scan(
+		&rv.Id,
+		&rv.Source,
+		&rv.Title,
+		&rv.Content,
+		&rv.PubTime,
+		&rv.Link,
+		&rv.Guid,
+	)
 	return rv, nil
 }

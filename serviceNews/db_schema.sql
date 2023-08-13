@@ -20,4 +20,3 @@ CREATE TABLE posts (
     guid TEXT NOT NULL,
     UNIQUE (source, guid)
 );
-

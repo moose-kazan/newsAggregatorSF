@@ -7,6 +7,7 @@ import (
 	"os"
 	"servicenews/internal/dbaccess"
 	"servicenews/internal/rssfetch"
+	"strconv"
 	"sync"
 	"time"
 
@@ -16,9 +17,34 @@ import (
 var db *dbaccess.Store
 var wg sync.WaitGroup
 
-func webApiNews(rw http.ResponseWriter, r *http.Request) {
+func webApiNewsById(rw http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+	post, err := db.PostGetById(id)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+	json_line, err := json.Marshal(post)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Write(json_line)
+
+}
+
+func webApiNewsLatest(rw http.ResponseWriter, r *http.Request) {
 	count := 100
-	posts, err := db.PostGetLast(count)
+	posts, err := db.PostGetLast(count, 0)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
@@ -144,7 +170,8 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/api/news/latest", webApiNews)
+	r.HandleFunc("/api/news/byid/{id:[0-9]+}", webApiNewsById)
+	r.HandleFunc("/api/news/latest", webApiNewsLatest)
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         LISTEN_SOCKET,
