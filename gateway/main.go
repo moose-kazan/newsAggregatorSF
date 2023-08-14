@@ -13,7 +13,7 @@ import (
 
 // Последние новости
 func apiNewsLatest(rw http.ResponseWriter, r *http.Request) {
-	page, err := strconv.Atoi(mux.Vars(r)["page"])
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil || page < 1 {
 		page = 1
 	}

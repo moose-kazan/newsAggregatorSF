@@ -44,8 +44,20 @@ func webApiNewsById(rw http.ResponseWriter, r *http.Request) {
 }
 
 func webApiNewsLatest(rw http.ResponseWriter, r *http.Request) {
-	count := 100
-	posts, err := db.PostGetLast(count, 0)
+	paramsRaw := r.URL.Query()
+	var params map[string]int = map[string]int{
+		"limit":  20,
+		"offset": 0,
+	}
+	for k := range params {
+		intVal, err := strconv.Atoi(paramsRaw.Get(k))
+		if err == nil {
+			params[k] = intVal
+		}
+
+	}
+
+	posts, err := db.PostGetLast(params["limit"], params["offset"])
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())

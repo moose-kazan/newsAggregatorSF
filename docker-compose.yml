@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  db:
+    container_name: "news-aggregator-main-db"
+    image: postgres
+    hostname: "main-db"
+    environment:
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "multirss"
+      POSTGRES_USER: "postgres"
+    volumes:
+      - "./data/postgres:/var/lib/postgresql/data:rw"
+    ports:
+      - published: 5432
+        target: 5432
+    restart: always
+
+  gateway:
+    container_name: "news-aggregator-gateway"
+    hostname: "gateway"
+    build:
+      context: "./gateway"
+      dockerfile: "./Dockerfile"
+    ports:
+      - 8888:8888
+  
+  srvnews:
+    container_name: "news-aggregator-srvnews"
+    hostname: "srvnews"
+    build:
+      context: "./serviceNews"
+      dockerfile: "./Dockerfile"
