@@ -19,8 +19,8 @@ import (
  * Обрабатывать сбои и пересылать запрос на живые ноды
  */
 var apiHosts = map[string]string{
-	"news":     "news:10010",
-	"comments": "comments:10010",
+	"news":     "srvnews:10010",
+	"comments": "srvcomments:10010",
 }
 
 type Post struct {
@@ -38,24 +38,24 @@ type API struct {
 }
 
 func httpReq(rv interface{}, host string, path string, method string, params map[string]string) error {
-	reqUrl := host + path
+	fmt.Printf("API Request: %s %s %s %v\n", method, host, path, params)
+	reqUrl := "http://" + host + path
 
 	data := url.Values{}
 	for k, v := range params {
 		data.Add(k, v)
 	}
 
-	var reqBody *strings.Reader
 	if method == "GET" {
 		reqUrl += "?"
 		reqUrl += data.Encode()
-	} else if method == "POST" {
-		reqBody = strings.NewReader(data.Encode())
 	}
+	reqBody := strings.NewReader(data.Encode())
 
+	fmt.Printf("API Request: %s %s %v", method, reqUrl, reqBody)
 	req, err := http.NewRequest(method, reqUrl, reqBody)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if method == "POST" {
@@ -66,7 +66,7 @@ func httpReq(rv interface{}, host string, path string, method string, params map
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil
+		return err
 	}
 	if resp.StatusCode != http.StatusOK {
 		return errors.New(fmt.Sprintf("Bad http code: %d", resp.StatusCode))

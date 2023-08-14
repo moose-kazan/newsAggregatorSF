@@ -12,7 +12,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 make clean build
 
 
 FROM debian:bookworm
-RUN apt update && apt install -y netcat-openbsd libterm-readkey-perl ca-certificates
+RUN apt update && apt install -y netcat-openbsd \
+    libterm-readkey-perl \
+    ca-certificates \
+    postgresql-client
 
 WORKDIR /serv
 COPY --from=builder /code/build/serviceNews /serv/
