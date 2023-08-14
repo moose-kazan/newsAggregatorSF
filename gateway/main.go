@@ -48,8 +48,37 @@ func apiNewsLatest(rw http.ResponseWriter, r *http.Request) {
 
 // Информация о новости по ID
 func apiNewsDetail(rw http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+
+	apiNews, err := api.New("news")
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, "Problem with news service!")
+		return
+	}
+	var post api.Post
+	err = apiNews.Get(&post, fmt.Sprintf("/api/news/byid/%d", id), map[string]string{})
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(rw, "Problem with news service: %s\n", err.Error())
+		return
+	}
+
+	json_line, err := json.Marshal(post)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+
 	rw.WriteHeader(http.StatusOK)
-	fmt.Fprintln(rw, "Not implemented")
+	rw.Write(json_line)
 }
 
 // Комментарии к новости по её ID
