@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"servicenews/internal/dbaccess"
+	"servicenews/internal/env"
 	"servicenews/internal/rssfetch"
 	"strconv"
 	"sync"
@@ -147,7 +148,11 @@ func processErrors(chanDone chan int, chanErrors chan string) {
 
 func main() {
 	var err error
-	db, err = dbaccess.New(DSN)
+
+	var db_port = env.GetInt("DB_PORT", DEFAULT_DB_PORT)
+	var db_host = env.GetStr("DB_HOST", DEFAULT_DB_HOST)
+
+	db, err = dbaccess.New(fmt.Sprintf(DSN, db_host, db_port))
 	if err != nil {
 		panic(err)
 	}

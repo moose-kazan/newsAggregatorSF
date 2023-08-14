@@ -1,4 +1,6 @@
 package main
 
-const DSN = "postgres://postgres:postgres@127.0.0.1:5432/multirss"
+const DEFAULT_DB_HOST = "db"
+const DEFAULT_DB_PORT = 5432
+const DSN = "postgres://postgres:postgres@%s:%d/multirss"
 const LISTEN_SOCKET = ":10010"

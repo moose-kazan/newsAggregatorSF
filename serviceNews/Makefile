@@ -6,6 +6,7 @@ clean:
 build: deps
 	mkdir -p build
 	go build -o build/serviceNews
+	cp run.sh build/run.sh
 
 deps:
 	go get github.com/gorilla/mux
