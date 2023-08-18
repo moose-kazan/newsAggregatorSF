@@ -16,7 +16,7 @@ RUN apt update && apt install -y libterm-readkey-perl ca-certificates
 
 WORKDIR /gateway
 COPY --from=builder /code/build/gateway /gateway/
-COPY --from=builder /code/webroot /cbr/webroot
+COPY --from=builder /code/webroot /gateway/webroot
 
 ENV UPDATE_INTERVAL=600
 

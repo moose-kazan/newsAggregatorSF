@@ -87,8 +87,17 @@ func apiCommentsLast(rw http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(rw, "Not implemented")
 }
 
+func logHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	r := mux.NewRouter()
+	r.Use(logHandler)
+	//r.Path("/webroot/").Handler(http.FileServer(http.Dir("./webroot/")))
 	r.Handle("/", http.FileServer(http.Dir("./webroot/")))
 	r.HandleFunc("/api/news/latest", apiNewsLatest)
 	r.HandleFunc("/api/news/detail/{id:[0-9]+}", apiNewsDetail)

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<style>
+    body {
+        background-color: #E0E0E0;
+        color: #444444;
+        padding: 20px;
+        margin: 20px;
+    }
+    div.news {
+        background-color: #FFFFFF;
+        color: #000000;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #000000;
+        border-radius: 5px;
+        margin: 20px;
+        padding: 20px;
+        font-size: 16px;
+    }
+    h1 {
+        font-size: 24px;
+    }
+    p {
+        font-size: 16px;
+    }
+    img {
+        max-width: 70%;
+    }
+    a {
+        color: #409040
+    }
+    p.pubtime {
+        font-style: italic;
+    }
+    div.error {
+        text-align: center;
+        background-color: #FFFFFF;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #000000;
+        border-radius: 5px;
+        margin: 20px;
+        padding: 20px;
+        font-size: 16px;
+    }
+    .error p {
+        color: #FF0000;
+    }
+</style>
+<html>
+    <head>
+        <title>Last news</title>
+    </head>
+    <body>
+        <div class="error" id="error" style="display:none">
+            <p id="errormsg"></p>
+            <p><a href="javascript:window.location.reload();">Reload page</a></p>
+        </div>
+        <div id="content">
+
+        </div>
+        <script type="text/javascript">
+            function ShowError(err) {
+                document.getElementById('error').style.display = '';
+                document.getElementById('errormsg').innerText = err;
+            }
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/news/latest?page=1')
+            xhr.send();
+            xhr.onload = function() {
+                if (xhr.status != 200) {
+                    ShowError(`HTTP Error: ${xhr.status}: ${xhr.statusText}`);
+                    return
+                }
+                news = JSON.parse(xhr.response);
+                if (news == null) {
+                    ShowError('Bad answer from API!');
+                    return
+                }
+                try {
+                for (i = 0; i < news.length; i++) {
+                    item = document.createElement('div');
+                    item.classList.add('news');
+
+                    itemTitle = document.createElement('h1')
+                    itemTitle.innerText = news[i].Title;
+                    item.append(itemTitle);
+
+                    itemDate = document.createElement('p');
+                    itemDate.innerText = new Date(news[i].PubTime*1000).toString();
+                    itemDate.classList.add('pubtime');
+                    item.append(itemDate);
+                    console.log(news[i].PubTime);
+
+                    itemContent = document.createElement('div');
+                    itemContent.innerHTML = news[i].Content;
+                    item.append(itemContent);
+
+                    itemLink = document.createElement('a')
+                    itemLink.innerText = news[i].Link;
+                    itemLink.href = news[i].Link;
+                    item.append(itemLink);
+
+                    document.getElementById('content').append(item);
+                }
+                }
+                catch (e) {
+                    ShowError(e.message)
+                }
+            }
+        </script>
+    </body>
+</html>
