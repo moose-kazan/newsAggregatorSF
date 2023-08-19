@@ -89,7 +89,7 @@ func apiCommentsLast(rw http.ResponseWriter, r *http.Request) {
 
 func logHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r)
+		fmt.Printf("WebRequest: %s %s\n", r.Method, r.RequestURI)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -97,11 +97,11 @@ func logHandler(next http.Handler) http.Handler {
 func main() {
 	r := mux.NewRouter()
 	r.Use(logHandler)
-	//r.Path("/webroot/").Handler(http.FileServer(http.Dir("./webroot/")))
-	r.Handle("/", http.FileServer(http.Dir("./webroot/")))
 	r.HandleFunc("/api/news/latest", apiNewsLatest)
 	r.HandleFunc("/api/news/detail/{id:[0-9]+}", apiNewsDetail)
 	r.HandleFunc("/api/comments/last/{id:[0-9]+}", apiCommentsLast)
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./webroot/")))
+	//r.Handle("/", http.FileServer(http.Dir("./webroot/")))
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         LISTEN_SOCKET,

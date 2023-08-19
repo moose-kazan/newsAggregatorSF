@@ -38,7 +38,7 @@ type API struct {
 }
 
 func httpReq(rv interface{}, host string, path string, method string, params map[string]string) error {
-	fmt.Printf("API Request: %s %s %s %v\n", method, host, path, params)
+	//fmt.Printf("API Request: %s %s %s %v\n", method, host, path, params)
 	reqUrl := "http://" + host + path
 
 	data := url.Values{}
@@ -52,7 +52,7 @@ func httpReq(rv interface{}, host string, path string, method string, params map
 	}
 	reqBody := strings.NewReader(data.Encode())
 
-	fmt.Printf("API Request: %s %s %v", method, reqUrl, reqBody)
+	//fmt.Printf("API Request: %s %s %v", method, reqUrl, reqBody)
 	req, err := http.NewRequest(method, reqUrl, reqBody)
 	if err != nil {
 		return err
@@ -74,7 +74,6 @@ func httpReq(rv interface{}, host string, path string, method string, params map
 
 	var resBody []byte
 	resBody, err = io.ReadAll(resp.Body)
-
 	err = json.Unmarshal(resBody, &rv)
 
 	if err != nil {

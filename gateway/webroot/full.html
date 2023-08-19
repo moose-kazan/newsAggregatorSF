@@ -4,11 +4,11 @@
         <title>Last news</title>
         <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
         <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
-        <script src="./js/index.js"></script>
+        <script src="./js/full.js"></script>
         <link rel="stylesheet" href="./style.css">
     </head>
     <body>
-        <div id="index">
+        <div id="full">
             <div v-if="loading" role="alert" class="info">
                 <p>Please wait...</p>
             </div>
@@ -18,17 +18,12 @@
             </div>
 
             <div id="content">
-                <div class="news" v-for="item in posts">
-                    <h1>{{ item.Title }}</h1>
-                    <p class="pubtime">{{ (new Date(item.PubTime*1000)).toString() }}</p>
-                    <a :href="'./full.html#' + item.Id">Read more and comment&gt;&gt;</a>
+                <div class="news" v-for="post in posts">
+                    <h1>{{ post.Title }}</h1>
+                    <p class="pubtime">{{ (new Date(post.PubTime*1000)).toString() }}</p>
+                    <div v-html="post.Content"></div>
+                    <a :href="post.Link">{{ post.Link }}</a>
                 </div>
-            </div>
-
-            <div class="info">
-                <a v-if="page > 1" :href="'#page=' + (parseInt(page)-1)">&lt;&lt;Prev</a>
-                [ {{ page }} ]
-                <a v-if="posts.length > 0" :href="'#page=' + (parseInt(page)+1)">Next&gt;&gt;</a>
             </div>
         </div>
     </body>

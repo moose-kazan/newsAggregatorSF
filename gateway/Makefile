@@ -9,3 +9,7 @@ build:
 
 deps:
 	go get github.com/gorilla/mux
+
+test:
+	@echo Run tests
+	go test -v -covermode=count './...'
