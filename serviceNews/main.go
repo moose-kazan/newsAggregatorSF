@@ -20,26 +20,26 @@ var db *dbaccess.Store
 var wg sync.WaitGroup
 var log *logger.Logger
 
+func Send503(rw http.ResponseWriter, r *http.Request, msg string) {
+	rw.WriteHeader(http.StatusInternalServerError)
+	fmt.Fprintln(rw, msg)
+	log.Error(r.Header.Get("X-Request-Id"), msg)
+}
+
 func webApiNewsById(rw http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	post, err := db.PostGetById(id)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	json_line, err := json.Marshal(post)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 
@@ -66,17 +66,13 @@ func webApiNewsSearch(rw http.ResponseWriter, r *http.Request) {
 	posts, err := db.PostSearch(params["limit"], params["offset"], searchQuery)
 
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 
 	json_line, err := json.Marshal(posts)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 

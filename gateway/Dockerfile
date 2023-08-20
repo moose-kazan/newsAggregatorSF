@@ -20,6 +20,6 @@ COPY --from=builder /code/webroot /gateway/webroot
 
 ENV UPDATE_INTERVAL=600
 
-EXPOSE 8888/tcp
+EXPOSE 8080/tcp
 
 ENTRYPOINT [ "./gateway" ]

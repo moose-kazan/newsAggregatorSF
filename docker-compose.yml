@@ -22,7 +22,7 @@ services:
       context: "./gateway"
       dockerfile: "./Dockerfile"
     ports:
-      - 8888:8888
+      - 8080:8080
   
   srvnews:
     container_name: "news-aggregator-srvnews"

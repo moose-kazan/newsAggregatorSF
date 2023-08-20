@@ -16,40 +16,36 @@ import (
 var db *dbaccess.Store
 var log *logger.Logger
 
+func Send503(rw http.ResponseWriter, r *http.Request, msg string) {
+	rw.WriteHeader(http.StatusInternalServerError)
+	fmt.Fprintln(rw, msg)
+	log.Error(r.Header.Get("X-Request-Id"), msg)
+}
+
 func webApiCommentAdd(rw http.ResponseWriter, r *http.Request) {
 	newcomm := r.FormValue("comment")
 	id_post, err := strconv.Atoi(r.FormValue("id_post"))
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	if id_post < 1 {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, "IdPost must be > 0")
-		log.Error(r.Header.Get("X-Request-Id"), "IdPost must be > 0")
+		Send503(rw, r, "IdPost must be > 0")
 		return
 	}
 	if newcomm == "" {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, "Comment can't be empty!")
-		log.Error(r.Header.Get("X-Request-Id"), "Comment can't be empty!")
+		Send503(rw, r, "Comment can't be empty!")
 		return
 	}
 	c, err := db.Add(id_post, newcomm)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 
 	json_line, err := json.Marshal(c)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 
@@ -60,23 +56,17 @@ func webApiCommentAdd(rw http.ResponseWriter, r *http.Request) {
 func webApiCommentGetForPost(rw http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	comments, err := db.GetForPost(id)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	json_line, err := json.Marshal(comments)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 

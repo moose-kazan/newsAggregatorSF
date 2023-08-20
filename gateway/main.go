@@ -17,6 +17,12 @@ import (
 
 var log *logger.Logger
 
+func Send503(rw http.ResponseWriter, r *http.Request, msg string) {
+	rw.WriteHeader(http.StatusInternalServerError)
+	fmt.Fprintln(rw, msg)
+	log.Error(r.Header.Get("X-Request-Id"), msg)
+}
+
 // Последние новости
 func apiNewsSearch(rw http.ResponseWriter, r *http.Request) {
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
@@ -30,26 +36,20 @@ func apiNewsSearch(rw http.ResponseWriter, r *http.Request) {
 
 	apiNews, err := api.New("news")
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, "Problem with news service!")
-		log.Error(r.Header.Get("X-Request-Id"), "Problem with news service!")
+		Send503(rw, r, "Problem with news service!")
 		return
 	}
 	var news []api.Post
 	err = apiNews.Get(&news, "/api/news/search", map[string]string{"limit": limit, "offset": offset, "query": searchQuery}, r.Header.Get("X-Request-Id"))
 
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(rw, "Problem with news service: %s\n", err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), fmt.Sprintf("Problem with news service: %s\n", err.Error()))
+		Send503(rw, r, fmt.Sprintf("Problem with news service: %s\n", err.Error()))
 		return
 	}
 
 	json_line, err := json.Marshal(news)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 
@@ -90,9 +90,7 @@ func fetchComments(comments *[]api.Comment, id int, wg *sync.WaitGroup, e *error
 func apiNewsDetail(rw http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 
@@ -119,9 +117,7 @@ func apiNewsDetail(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if errorTotal != "" {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, errorTotal)
-		log.Error(r.Header.Get("X-Request-Id"), errorTotal)
+		Send503(rw, r, errorTotal)
 		return
 	}
 
@@ -133,9 +129,7 @@ func apiNewsDetail(rw http.ResponseWriter, r *http.Request) {
 
 	json_line, err := json.Marshal(answer)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 
@@ -156,46 +150,61 @@ func apiCommentsAdd(rw http.ResponseWriter, r *http.Request) {
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	var newcomm NewCommData
 	err = json.Unmarshal(reqBody, &newcomm)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	if newcomm.Comment == "" {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, "Comment can't be empty!")
-		log.Error(r.Header.Get("X-Request-Id"), "Comment can't be empty!")
+		Send503(rw, r, "Comment can't be empty!")
 		return
 	}
+
+	apiModerate, err := api.New("moderate")
+	if err != nil {
+		Send503(rw, r, "Problem with moderate service!")
+		return
+	}
+
+	var f api.ModerResult
+	err = apiModerate.Post(&f, "/api/moderate/badwords", map[string]string{"text": newcomm.Comment}, r.Header.Get("X-Request-Id"))
+	if err != nil && apiModerate.LastCode() == http.StatusBadRequest {
+		var answer ApiAnswer = ApiAnswer{Success: false, Message: "Comment not added (have bad words)!"}
+		json_line, err := json.Marshal(answer)
+		if err != nil {
+			Send503(rw, r, err.Error())
+			return
+		}
+
+		rw.WriteHeader(http.StatusOK)
+		rw.Write(json_line)
+
+		return
+	} else if err != nil {
+		Send503(rw, r, err.Error())
+		return
+	}
+
 	apiComments, err := api.New("comments")
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, "Problem with comments service!")
-		log.Error(r.Header.Get("X-Request-Id"), "Problem with comments service!")
+		Send503(rw, r, "Problem with comments service!")
 		return
 	}
 
 	var c api.Comment
 	err = apiComments.Post(&c, "/api/comment/add", map[string]string{"comment": newcomm.Comment, "id_post": newcomm.Id}, r.Header.Get("X-Request-Id"))
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 	var answer ApiAnswer = ApiAnswer{Success: true, Message: "Comment successfully added!"}
 	json_line, err := json.Marshal(answer)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(rw, err.Error())
-		log.Error(r.Header.Get("X-Request-Id"), err.Error())
+		Send503(rw, r, err.Error())
 		return
 	}
 

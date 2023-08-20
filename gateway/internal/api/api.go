@@ -42,11 +42,30 @@ type Comment struct {
 	FlagObscene bool
 }
 
-type API struct {
-	host string
+type ModerResult struct {
+	Filtered bool `json:"filtered"`
 }
 
-func httpReq(rv interface{}, host string, path string, method string, params map[string]string, reqId string) error {
+type API struct {
+	host     string
+	lastCode int
+}
+
+func New(name string) (*API, error) {
+	var a API
+	if apiHosts[name] == "" {
+		return nil, errors.New(fmt.Sprintf("Unknown service name: %s!", name))
+	}
+	a.host = apiHosts[name]
+	return &a, nil
+}
+
+func (a *API) LastCode() int {
+	return a.lastCode
+}
+
+func (a *API) httpReq(rv interface{}, host string, path string, method string, params map[string]string, reqId string) error {
+	a.lastCode = 0
 	//fmt.Printf("API Request: %s %s %s %v\n", method, host, path, params)
 	reqUrl := "http://" + host + path
 
@@ -81,6 +100,9 @@ func httpReq(rv interface{}, host string, path string, method string, params map
 	if err != nil {
 		return err
 	}
+
+	a.lastCode = resp.StatusCode
+
 	if resp.StatusCode != http.StatusOK {
 		return errors.New(fmt.Sprintf("Bad http code: %d", resp.StatusCode))
 	}
@@ -96,19 +118,10 @@ func httpReq(rv interface{}, host string, path string, method string, params map
 	return nil
 }
 
-func New(name string) (*API, error) {
-	var a API
-	if apiHosts[name] == "" {
-		return nil, errors.New(fmt.Sprintf("Unknown service name: %s!", name))
-	}
-	a.host = apiHosts[name]
-	return &a, nil
-}
-
 func (a *API) Get(rv interface{}, path string, params map[string]string, reqId string) error {
-	return httpReq(&rv, a.host, path, "GET", params, reqId)
+	return a.httpReq(&rv, a.host, path, "GET", params, reqId)
 }
 
 func (a *API) Post(rv interface{}, path string, params map[string]string, reqId string) error {
-	return httpReq(&rv, a.host, path, "POST", params, reqId)
+	return a.httpReq(&rv, a.host, path, "POST", params, reqId)
 }
