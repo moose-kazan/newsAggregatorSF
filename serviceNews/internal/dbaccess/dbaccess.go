@@ -61,7 +61,7 @@ func (s *Store) SourceAdd(link string, defaultInterval int) (int, error) {
 }
 
 func (s *Store) SourceGetActive() ([]Source, error) {
-	var rv []Source
+	var rv []Source = make([]Source, 0)
 	var sql string = `SELECT
 						id,
 						link,

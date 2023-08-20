@@ -30,3 +30,10 @@ services:
     build:
       context: "./serviceNews"
       dockerfile: "./Dockerfile"
+
+  srvcomments:
+    container_name: "news-aggregator-srvcomments"
+    hostname: "srvcomments"
+    build:
+      context: "./serviceComments"
+      dockerfile: "./Dockerfile"

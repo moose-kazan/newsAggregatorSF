@@ -187,8 +187,8 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/api/news/byid/{id:[0-9]+}", webApiNewsById)
-	r.HandleFunc("/api/news/latest", webApiNewsLatest)
+	r.HandleFunc("/api/news/byid/{id:[0-9]+}", webApiNewsById).Methods("GET")
+	r.HandleFunc("/api/news/latest", webApiNewsLatest).Methods("GET")
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         LISTEN_SOCKET,

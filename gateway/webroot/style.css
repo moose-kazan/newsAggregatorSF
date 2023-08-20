@@ -15,6 +15,20 @@ div.news {
     padding: 20px;
     font-size: 16px;
 }
+div.comment {
+    background-color: #FFFFFF;
+    color: #000000;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #000000;
+    border-radius: 5px;
+    margin: 20px;
+    padding: 20px;
+    font-size: 16px;
+}
+div.obscene {
+    color: #A0A0A0;
+}
 h1 {
     font-size: 24px;
 }
@@ -55,4 +69,27 @@ div.info {
     margin: 20px;
     padding: 20px;
     font-size: 16px;
+}
+
+div.newcomment {
+    text-align: center;
+    background-color: #FFFFFF;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #000000;
+    border-radius: 5px;
+    margin: 20px;
+    padding: 20px;
+    font-size: 16px;
+}
+.newcomment textarea {
+    display: block;
+    width: 600px;
+    height: 200px;
+    margin: 5px;
+}
+.newcomment input {
+    display: block;
+    margin: 5px;
+    height: 35px;
 }

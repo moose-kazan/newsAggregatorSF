@@ -13,16 +13,45 @@
                 <p>Please wait...</p>
             </div>
             <div class="error" id="error" v-if="errored">
-                <p id="errormsg">Network problem. Please try again later...</p>
+                <p>Network problem. Please try again later...</p>
                 <p><a href="javascript:window.location.reload();">Reload page</a></p>
             </div>
 
-            <div id="content">
+            <div>
                 <div class="news" v-for="post in posts">
                     <h1>{{ post.Title }}</h1>
                     <p class="pubtime">{{ (new Date(post.PubTime*1000)).toString() }}</p>
                     <div v-html="post.Content"></div>
                     <a :href="post.Link">{{ post.Link }}</a>
+                </div>
+            </div>
+
+            <div>
+                <h1>Comments:</h1>
+                <div v-if="nocomments" role="alert" class="info">
+                    <p>No comments fot this post</p>
+                </div>
+                <div v-if="commentsloading" role="alert" class="info">
+                    <p>Please wait...</p>
+                </div>
+                <div class="error" v-if="commentserrored">
+                    <p>Network problem. Please try again later...</p>
+                    <p><a href="javascript:window.location.reload();">Reload page</a></p>
+                </div>
+                <div v-bind:class="{ obscene: comment.FlagObscene, comment: true }" v-for="comment in comments">
+                    <!-- v-bind:class="obscene: comment.FlagObscene, comment: true" -->
+                    <p class="pubtime">{{ (new Date(comment.PubTime*1000)).toString() }}</p>
+                    <div v-html="comment.Content"></div>
+                </div>
+            </div>
+                <h1>New comment:</h1>
+                <div class="newcomment">
+                    <form @submit.prevent="addComment" method="post">
+                        <textarea v-model="newComment">
+                        </textarea>
+                        <input type="hidden" v-model="id">
+                        <input type="submit" value="Add comment">
+                    </form>
                 </div>
             </div>
         </div>

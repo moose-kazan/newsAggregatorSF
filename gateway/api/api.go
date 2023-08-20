@@ -20,7 +20,7 @@ import (
  */
 var apiHosts = map[string]string{
 	"news":     "srvnews:10010",
-	"comments": "srvcomments:10010",
+	"comments": "srvcomments:10020",
 }
 
 type Post struct {
@@ -31,6 +31,14 @@ type Post struct {
 	PubTime int64
 	Link    string
 	Guid    string
+}
+
+type Comment struct {
+	Id          int
+	IdPost      int
+	Content     string
+	PubTime     int64
+	FlagObscene bool
 }
 
 type API struct {

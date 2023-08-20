@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"newsgateway/api"
 	"strconv"
@@ -83,8 +84,86 @@ func apiNewsDetail(rw http.ResponseWriter, r *http.Request) {
 
 // Комментарии к новости по её ID
 func apiCommentsLast(rw http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+	apiComments, err := api.New("comments")
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, "Problem with comments service!")
+		return
+	}
+
+	var comments []api.Comment
+	err = apiComments.Get(&comments, fmt.Sprintf("/api/comment/getforpost/%d", id), map[string]string{})
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(rw, "Problem with news service: %s\n", err.Error())
+		return
+	}
+
+	json_line, err := json.Marshal(comments)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+
 	rw.WriteHeader(http.StatusOK)
-	fmt.Fprintln(rw, "Not implemented")
+	rw.Write(json_line)
+}
+
+func apiCommentsAdd(rw http.ResponseWriter, r *http.Request) {
+	type NewCommData struct {
+		Comment string `json:"comment"`
+		Id      string `json:"id"`
+	}
+
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+	var newcomm NewCommData
+	err = json.Unmarshal(reqBody, &newcomm)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+	if newcomm.Comment == "" {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, "Comment can't be empty!")
+		return
+	}
+	apiComments, err := api.New("comments")
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, "Problem with comments service!")
+		return
+	}
+
+	var c api.Comment
+	err = apiComments.Post(&c, "/api/comment/add", map[string]string{"comment": newcomm.Comment, "id_post": newcomm.Id})
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+	json_line, err := json.Marshal(c)
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(rw, err.Error())
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Write(json_line)
 }
 
 func logHandler(next http.Handler) http.Handler {
@@ -97,9 +176,10 @@ func logHandler(next http.Handler) http.Handler {
 func main() {
 	r := mux.NewRouter()
 	r.Use(logHandler)
-	r.HandleFunc("/api/news/latest", apiNewsLatest)
-	r.HandleFunc("/api/news/detail/{id:[0-9]+}", apiNewsDetail)
-	r.HandleFunc("/api/comments/last/{id:[0-9]+}", apiCommentsLast)
+	r.HandleFunc("/api/news/latest", apiNewsLatest).Methods("GET")
+	r.HandleFunc("/api/news/detail/{id:[0-9]+}", apiNewsDetail).Methods("GET")
+	r.HandleFunc("/api/comments/last/{id:[0-9]+}", apiCommentsLast).Methods("GET")
+	r.HandleFunc("/api/comments/add", apiCommentsAdd).Methods("POST")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./webroot/")))
 	//r.Handle("/", http.FileServer(http.Dir("./webroot/")))
 	srv := &http.Server{
