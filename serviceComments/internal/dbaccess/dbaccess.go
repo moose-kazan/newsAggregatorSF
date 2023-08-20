@@ -88,6 +88,33 @@ func (s *Store) GetForPost(idPost int) ([]Comment, error) {
 	return rv, nil
 }
 
-func (s *Store) Update(c Comment) error {
-	return nil
+func (s *Store) Update(c Comment) (Comment, error) {
+	var rv Comment
+	var sql string = `UPDATE comments
+		SET
+			id_post = $2,
+			content = $3,
+			pubTime = $4,
+			flag_obscene = $5
+		WHERE id = $1
+		RETURNING id, id_post, content, pubTime, flag_obscene`
+	err := s.db.QueryRow(
+		context.Background(),
+		sql,
+		c.Id,
+		c.IdPost,
+		c.Content,
+		c.PubTime,
+		c.FlagObscene,
+	).Scan(
+		&rv.Id,
+		&rv.IdPost,
+		&rv.Content,
+		&rv.PubTime,
+		&rv.FlagObscene,
+	)
+	if err != nil {
+		return rv, err
+	}
+	return rv, nil
 }

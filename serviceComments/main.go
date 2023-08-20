@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"servicecomments/internal/dbaccess"
 	"servicecomments/internal/env"
+	"servicecomments/internal/logger"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
 var db *dbaccess.Store
-var wg sync.WaitGroup
+var log *logger.Logger
 
 func webApiCommentAdd(rw http.ResponseWriter, r *http.Request) {
 	newcomm := r.FormValue("comment")
@@ -22,28 +22,34 @@ func webApiCommentAdd(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 	if id_post < 1 {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, "IdPost must be > 0")
+		log.Error(r.Header.Get("X-Request-Id"), "IdPost must be > 0")
 		return
 	}
 	if newcomm == "" {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, "Comment can't be empty!")
+		log.Error(r.Header.Get("X-Request-Id"), "Comment can't be empty!")
 		return
 	}
 	c, err := db.Add(id_post, newcomm)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
+
 	json_line, err := json.Marshal(c)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 
@@ -56,18 +62,21 @@ func webApiCommentGetForPost(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 	comments, err := db.GetForPost(id)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 	json_line, err := json.Marshal(comments)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 
@@ -76,7 +85,16 @@ func webApiCommentGetForPost(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func logHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Info(r.Header.Get("X-Request-Id"), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
+	log = logger.New(LOG_PREFIX)
+
 	var err error
 
 	var db_port = env.GetInt("DB_PORT", DEFAULT_DB_PORT)
@@ -87,10 +105,9 @@ func main() {
 		panic(err)
 	}
 
-	var chanDone = make(chan int)
-	defer close(chanDone)
-
 	r := mux.NewRouter()
+
+	r.Use(logHandler)
 
 	r.HandleFunc("/api/comment/getforpost/{id:[0-9]+}", webApiCommentGetForPost).Methods("GET")
 	r.HandleFunc("/api/comment/add", webApiCommentAdd).Methods("POST")
@@ -101,7 +118,4 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 	srv.ListenAndServe()
-
-	wg.Wait()
-
 }

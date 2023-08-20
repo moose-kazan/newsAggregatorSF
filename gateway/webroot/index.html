@@ -9,6 +9,15 @@
     </head>
     <body>
         <div id="index">
+            <div class="search">
+                <div class="searchform">
+                    <form method="get" action="./">
+                        <input v-model="searchQuery" type="text" name="query">
+                        <input type="Submit" value="Search">
+                    </form>
+                </div>
+            </div>
+
             <div v-if="loading" role="alert" class="info">
                 <p>Please wait...</p>
             </div>
@@ -17,7 +26,7 @@
                 <p><a href="javascript:window.location.reload();">Reload page</a></p>
             </div>
 
-            <div id="content">
+            <div>
                 <div class="news" v-for="item in posts">
                     <h1>{{ item.Title }}</h1>
                     <p class="pubtime">{{ (new Date(item.PubTime*1000)).toString() }}</p>

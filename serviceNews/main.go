@@ -7,6 +7,7 @@ import (
 	"os"
 	"servicenews/internal/dbaccess"
 	"servicenews/internal/env"
+	"servicenews/internal/logger"
 	"servicenews/internal/rssfetch"
 	"strconv"
 	"sync"
@@ -17,24 +18,28 @@ import (
 
 var db *dbaccess.Store
 var wg sync.WaitGroup
+var log *logger.Logger
 
 func webApiNewsById(rw http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 	post, err := db.PostGetById(id)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 	json_line, err := json.Marshal(post)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 
@@ -43,7 +48,7 @@ func webApiNewsById(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-func webApiNewsLatest(rw http.ResponseWriter, r *http.Request) {
+func webApiNewsSearch(rw http.ResponseWriter, r *http.Request) {
 	paramsRaw := r.URL.Query()
 	var params map[string]int = map[string]int{
 		"limit":  20,
@@ -56,11 +61,14 @@ func webApiNewsLatest(rw http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	searchQuery := r.URL.Query().Get("query")
 
-	posts, err := db.PostGetLast(params["limit"], params["offset"])
+	posts, err := db.PostSearch(params["limit"], params["offset"], searchQuery)
+
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 
@@ -68,6 +76,7 @@ func webApiNewsLatest(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
+		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
 
@@ -158,7 +167,16 @@ func processErrors(chanDone chan int, chanErrors chan string) {
 	}
 }
 
+func logHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Info(r.Header.Get("X-Request-Id"), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
+	log = logger.New(LOG_PREFIX)
+
 	var err error
 
 	var db_port = env.GetInt("DB_PORT", DEFAULT_DB_PORT)
@@ -187,8 +205,10 @@ func main() {
 
 	r := mux.NewRouter()
 
+	r.Use(logHandler)
+
 	r.HandleFunc("/api/news/byid/{id:[0-9]+}", webApiNewsById).Methods("GET")
-	r.HandleFunc("/api/news/latest", webApiNewsLatest).Methods("GET")
+	r.HandleFunc("/api/news/search", webApiNewsSearch).Methods("GET")
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         LISTEN_SOCKET,

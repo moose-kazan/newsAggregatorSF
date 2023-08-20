@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 posts: null,
                 loading: true,
                 errored: false,
-                page: this.getPage()
+                page: this.getPage(),
+                searchQuery: this.getQuery()
             };
         },
         methods: {
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             },
             fetchNews() {
                 axios
-                .get('/api/news/latest?page=' + this.page)
+                .get('/api/news/search?page=' + this.page + '&query=' + encodeURIComponent(this.searchQuery))
                 .then(response => (this.posts = response.data))
                 .catch(error => {
                     console.log(error);
@@ -32,10 +33,20 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 })
                 .finally(() => (this.loading = false));
             },
+            getQuery() {
+                query_string = window.location.search.replace(/^\?/, '')
+                query_params = query_string.split('&')
+                for (i = 0; i < query_params.length; i++) {
+                    param_data = query_params[i].split('=')
+                    if (param_data.length == 2 && param_data[0] == "query") {
+                        return decodeURIComponent(param_data[1]);
+                    }
+                }
+                return "";
+            },
             getPage() {
                 page = 1;
                 params = window.location.hash.replace(/^\#/, '').split('/')
-                console.log(params)
                 if (params.length < 1) {
                     return page;
                 }
@@ -51,10 +62,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
             },
             updatePage() {
                 this.page = this.getPage()
+                this.searchQuery = this.GetQuery()
                 this.fetchNews();    
             }
         },
         mounted() {
+            this.page = this.getPage()
+            this.searchQuery = this.getQuery()
             this.fetchNews();
         }
     });

@@ -7,9 +7,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 loading: true,
                 errored: false,
                 id: this.getId(),
-                commentserrored: false,
                 nocomments: false,
-                commentsloading: true,
                 comments: null,
                 newComment: '',
             };
@@ -24,26 +22,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 axios
                 .post("/api/comments/add", postData)
                 .then(response => ( console.log(response )))
-            },
-            fetchComments() {
-                axios
-                .get('/api/comments/last/' + this.id)
-                .then(response => (
-                    this.comments = response.data,
-                    this.nocomments = this.comments ? true : false
-                ))
-                .catch(error => {
-                    console.log(error);
-                    this.commentserrored = true;
-                })
                 .finally(() => (
-                    this.commentsloading = false
-                ));
+                    this.newComment = ""
+                ))
             },
-            fetchNews() {
+            fetchData() {
                 axios
                 .get('/api/news/detail/' + this.id)
-                .then(response => (this.posts = [response.data]))
+                .then(response => (
+                    this.posts = [response.data.Post],
+                    this.comments = response.data.Comments,
+                    this.nocomments = (this.comments == null || this.comments.length == 0)
+                ))
                 .catch(error => {
                     console.log(error);
                     this.errored = true;
@@ -58,12 +48,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
             },
             updatePage() {
                 this.id = this.getId()
-                this.fetchNews();
+                this.fetchData();
             }
         },
         mounted() {
-            this.fetchNews();
-            this.fetchComments();
+            this.fetchData();
         }
     });
     window.onhashchange = app.updatePage

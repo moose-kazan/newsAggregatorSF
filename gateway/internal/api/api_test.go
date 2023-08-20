@@ -33,7 +33,7 @@ func Test_httpReq(t *testing.T) {
 
 	t.Run("GET", func(t *testing.T) {
 		var val TestType
-		err := httpReq(&val, srvHost, "/test", "GET", map[string]string{"n": "5"})
+		err := httpReq(&val, srvHost, "/test", "GET", map[string]string{"n": "5"}, "")
 		if err != nil {
 			t.Errorf("HTTP Error: %v", err)
 		}
@@ -50,7 +50,7 @@ func Test_httpReq(t *testing.T) {
 
 	t.Run("POST", func(t *testing.T) {
 		var val TestType
-		err := httpReq(&val, srvHost, "/test", "POST", map[string]string{"n": "5"})
+		err := httpReq(&val, srvHost, "/test", "POST", map[string]string{"n": "5"}, "")
 		if err != nil {
 			t.Errorf("HTTP Error: %v", err)
 		}
@@ -97,7 +97,7 @@ func TestAPI_Get(t *testing.T) {
 			return
 		}
 		var val TestType
-		err = api.Get(&val, "/test", map[string]string{"n": "5"})
+		err = api.Get(&val, "/test", map[string]string{"n": "5"}, "")
 		if err != nil {
 			t.Errorf("HTTP Error: %v", err)
 		}
@@ -144,7 +144,7 @@ func TestAPI_Post(t *testing.T) {
 			return
 		}
 		var val TestType
-		err = api.Post(&val, "/test", map[string]string{"n": "5"})
+		err = api.Post(&val, "/test", map[string]string{"n": "5"}, "")
 		if err != nil {
 			t.Errorf("HTTP Error: %v", err)
 		}

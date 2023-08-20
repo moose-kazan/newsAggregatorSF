@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -125,7 +126,7 @@ func (s *Store) PostAdd(p Post) (int, error) {
 	return id, nil
 }
 
-func (s *Store) PostGetLast(count int, offset int) ([]Post, error) {
+func (s *Store) PostSearch(count int, offset int, searchQuery string) ([]Post, error) {
 	rv := make([]Post, 0)
 	var sql string = `SELECT
 			id,
@@ -135,11 +136,21 @@ func (s *Store) PostGetLast(count int, offset int) ([]Post, error) {
 			pubTime,
 			link,
 			guid
-		FROM posts
-		ORDER BY pubTime DESC
+		FROM posts `
+	if searchQuery != "" {
+		sql += ` WHERE title ILIKE $3 `
+	}
+	sql += ` ORDER BY pubTime DESC
 		LIMIT $2
 		OFFSET $1;`
-	r, err := s.db.Query(context.Background(), sql, offset, count)
+	var r pgx.Rows
+	var err error
+	if searchQuery != "" {
+		query := "%" + searchQuery + "%"
+		r, err = s.db.Query(context.Background(), sql, offset, count, query)
+	} else {
+		r, err = s.db.Query(context.Background(), sql, offset, count)
+	}
 	if err != nil {
 		return rv, err
 	}

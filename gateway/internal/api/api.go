@@ -21,6 +21,7 @@ import (
 var apiHosts = map[string]string{
 	"news":     "srvnews:10010",
 	"comments": "srvcomments:10020",
+	"moderate": "srvmoderate:10030",
 }
 
 type Post struct {
@@ -45,7 +46,7 @@ type API struct {
 	host string
 }
 
-func httpReq(rv interface{}, host string, path string, method string, params map[string]string) error {
+func httpReq(rv interface{}, host string, path string, method string, params map[string]string, reqId string) error {
 	//fmt.Printf("API Request: %s %s %s %v\n", method, host, path, params)
 	reqUrl := "http://" + host + path
 
@@ -64,6 +65,10 @@ func httpReq(rv interface{}, host string, path string, method string, params map
 	req, err := http.NewRequest(method, reqUrl, reqBody)
 	if err != nil {
 		return err
+	}
+
+	if reqId != "" {
+		req.Header.Add("X-Request-Id", reqId)
 	}
 
 	if method == "POST" {
@@ -100,10 +105,10 @@ func New(name string) (*API, error) {
 	return &a, nil
 }
 
-func (a *API) Get(rv interface{}, path string, params map[string]string) error {
-	return httpReq(&rv, a.host, path, "GET", params)
+func (a *API) Get(rv interface{}, path string, params map[string]string, reqId string) error {
+	return httpReq(&rv, a.host, path, "GET", params, reqId)
 }
 
-func (a *API) Post(rv interface{}, path string, params map[string]string) error {
-	return httpReq(&rv, a.host, path, "POST", params)
+func (a *API) Post(rv interface{}, path string, params map[string]string, reqId string) error {
+	return httpReq(&rv, a.host, path, "POST", params, reqId)
 }

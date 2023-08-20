@@ -122,7 +122,7 @@ func TestStore_PostAdd(t *testing.T) {
 	})
 }
 
-func TestStore_PostGetLast(t *testing.T) {
+func TestStore_PostSearch(t *testing.T) {
 	t.Run("Main", func(t *testing.T) {
 		s, err := New(TestDSN)
 		if err != nil {
@@ -160,7 +160,7 @@ func TestStore_PostGetLast(t *testing.T) {
 			t.Errorf("Can't insert posts: %v", err)
 			return
 		}
-		posts, err := s.PostGetLast(10, 0)
+		posts, err := s.PostSearch(10, 0, "")
 		if err != nil {
 			t.Errorf("Can't gat posts: %v", err)
 			return
