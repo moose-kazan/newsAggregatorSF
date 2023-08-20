@@ -36,5 +36,5 @@ func BadWords(s string) bool {
 	re_line += strings.Join(badWords, "|")
 	re_line += ")(?:$|[^\\pL\\pN])"
 	re := regexp.MustCompile(re_line)
-	return re.MatchString(s)
+	return re.MatchString(strings.ToLower(s))
 }

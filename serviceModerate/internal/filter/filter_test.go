@@ -10,6 +10,7 @@ func TestBadWords(t *testing.T) {
 	}{
 		{name: "Negative", arg: "Simple test comment", want: false},
 		{name: "Positive single", arg: "qwerty", want: true},
+		{name: "Positive single multicase", arg: "qWErty", want: true},
 		{name: "Positive first", arg: "qwerty/test comment", want: true},
 		{name: "Positive middle", arg: "test qwerty: comment", want: true},
 		{name: "Positive end", arg: "test comment, qwerty", want: true},
