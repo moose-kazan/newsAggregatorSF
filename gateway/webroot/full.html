@@ -48,6 +48,12 @@
             </div>
                 <h1>New comment:</h1>
                 <div class="newcomment">
+                    <div v-if="commentResultError != ''" class="commentresulterror">
+                        {{ commentResultError }}
+                    </div>
+                    <div v-if="commentResultSuccess != ''" class="commentresultsuccess">
+                        {{ commentResultSuccess }}
+                    </div>
                     <form @submit.prevent="addComment" method="post">
                         <textarea v-model="newComment">
                         </textarea>

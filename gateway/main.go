@@ -149,6 +149,11 @@ func apiCommentsAdd(rw http.ResponseWriter, r *http.Request) {
 		Id      string `json:"id"`
 	}
 
+	type ApiAnswer struct {
+		Message string `json:"message"`
+		Success bool   `json:"success"`
+	}
+
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -185,7 +190,8 @@ func apiCommentsAdd(rw http.ResponseWriter, r *http.Request) {
 		log.Error(r.Header.Get("X-Request-Id"), err.Error())
 		return
 	}
-	json_line, err := json.Marshal(c)
+	var answer ApiAnswer = ApiAnswer{Success: true, Message: "Comment successfully added!"}
+	json_line, err := json.Marshal(answer)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(rw, err.Error())
@@ -205,12 +211,13 @@ func logHandler(next http.Handler) http.Handler {
 }
 
 func reqIdHandler(next http.Handler) http.Handler {
-	// X-Request-Id
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-Request-Id") == "" {
 			var reqId string = uuid.NewString()
 			r.Header.Add("X-Request-Id", reqId)
 			w.Header().Add("X-Request-Id", reqId)
+		} else {
+			w.Header().Add("X-Request-Id", r.Header.Get("X-Request-Id"))
 		}
 		next.ServeHTTP(w, r)
 	})

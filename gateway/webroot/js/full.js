@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 nocomments: false,
                 comments: null,
                 newComment: '',
+                commentResultSuccess: '',
+                commentResultError: '',
             };
         },
         methods: {
@@ -18,10 +20,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     // Do nothing on empty comment
                     return
                 }
+                this.commentResultSuccess = ""
+                this.commentResultError = ""
                 const postData = { comment: this.newComment, id: this.id };
                 axios
                 .post("/api/comments/add", postData)
-                .then(response => ( console.log(response )))
+                .then(response => ( 
+                    this.commentResultSuccess = response.data.success ? response.data.message : '',
+                    this.commentResultError = response.data.success ? '' : response.data.message
+                ))
+                .catch(error => (
+                    this.commentResultError = error.message
+                ))
                 .finally(() => (
                     this.newComment = ""
                 ))

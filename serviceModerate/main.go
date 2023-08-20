@@ -15,6 +15,15 @@ func webApiModerateComment(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func reqIdHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Request-Id") != "" {
+			w.Header().Add("X-Request-Id", r.Header.Get("X-Request-Id"))
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func logHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Info(r.Header.Get("X-Request-Id"), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
@@ -27,6 +36,7 @@ func main() {
 
 	r := mux.NewRouter()
 
+	r.Use(reqIdHandler)
 	r.Use(logHandler)
 
 	r.HandleFunc("/api/moderate/comment", webApiModerateComment).Methods("POST")

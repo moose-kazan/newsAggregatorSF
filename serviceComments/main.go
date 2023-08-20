@@ -92,6 +92,15 @@ func logHandler(next http.Handler) http.Handler {
 	})
 }
 
+func reqIdHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Request-Id") != "" {
+			w.Header().Add("X-Request-Id", r.Header.Get("X-Request-Id"))
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	log = logger.New(LOG_PREFIX)
 
@@ -107,6 +116,7 @@ func main() {
 
 	r := mux.NewRouter()
 
+	r.Use(reqIdHandler)
 	r.Use(logHandler)
 
 	r.HandleFunc("/api/comment/getforpost/{id:[0-9]+}", webApiCommentGetForPost).Methods("GET")
