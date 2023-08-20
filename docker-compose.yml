@@ -30,6 +30,8 @@ services:
     build:
       context: "./serviceNews"
       dockerfile: "./Dockerfile"
+    volumes:
+      - "./data/lock:/lock:rw"
 
   srvcomments:
     container_name: "news-aggregator-srvcomments"
@@ -37,3 +39,5 @@ services:
     build:
       context: "./serviceComments"
       dockerfile: "./Dockerfile"
+    volumes:
+      - "./data/lock:/lock:rw"
