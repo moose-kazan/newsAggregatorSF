@@ -32,8 +32,6 @@ services:
       dockerfile: "./Dockerfile"
     volumes:
       - "./data/lock:/lock:rw"
-    ports:
-      - 10010:10010
 
   srvcomments:
     container_name: "news-aggregator-srvcomments"
@@ -43,8 +41,6 @@ services:
       dockerfile: "./Dockerfile"
     volumes:
       - "./data/lock:/lock:rw"
-    ports:
-      - 10020:10020
 
   srvmoderate:
     container_name: "news-aggregator-srvmoderate"
@@ -52,5 +48,3 @@ services:
     build:
       context: "./serviceModerate"
       dockerfile: "./Dockerfile"
-    ports:
-      - 10030:10030
