@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"newsgateway/internal/api"
 	"newsgateway/internal/logger"
@@ -39,15 +40,26 @@ func apiNewsSearch(rw http.ResponseWriter, r *http.Request) {
 		Send503(rw, r, "Problem with news service!")
 		return
 	}
-	var news []api.Post
-	err = apiNews.Get(&news, "/api/news/search", map[string]string{"limit": limit, "offset": offset, "query": searchQuery}, r.Header.Get("X-Request-Id"))
+
+	var search_results api.PostsSearch
+	err = apiNews.Get(&search_results, "/api/news/search", map[string]string{"limit": limit, "offset": offset, "query": searchQuery}, r.Header.Get("X-Request-Id"))
 
 	if err != nil {
 		Send503(rw, r, fmt.Sprintf("Problem with news service: %s\n", err.Error()))
 		return
 	}
 
-	json_line, err := json.Marshal(news)
+	type Answer struct {
+		Posts     []api.Post `json:"posts"`
+		PageCount int        `json:"page_count"`
+	}
+
+	var answer Answer = Answer{
+		Posts:     search_results.Posts,
+		PageCount: int(math.Ceil(float64(search_results.TotalCount / NEWS_PER_PAGE))),
+	}
+
+	json_line, err := json.Marshal(answer)
 	if err != nil {
 		Send503(rw, r, err.Error())
 		return

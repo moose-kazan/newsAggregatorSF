@@ -37,7 +37,7 @@
             <div class="info">
                 <a v-if="page > 1" :href="'#page=' + (parseInt(page)-1)">&lt;&lt;Prev</a>
                 [ {{ page }} ]
-                <a v-if="posts.length > 0" :href="'#page=' + (parseInt(page)+1)">Next&gt;&gt;</a>
+                <a v-if="page < pageCount" :href="'#page=' + (parseInt(page)+1)">Next&gt;&gt;</a>
             </div>
         </div>
     </body>

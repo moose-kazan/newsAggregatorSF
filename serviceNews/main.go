@@ -63,14 +63,20 @@ func webApiNewsSearch(rw http.ResponseWriter, r *http.Request) {
 	}
 	searchQuery := r.URL.Query().Get("query")
 
-	posts, err := db.PostSearch(params["limit"], params["offset"], searchQuery)
+	posts, total_count, err := db.PostSearch(params["limit"], params["offset"], searchQuery)
 
 	if err != nil {
 		Send503(rw, r, err.Error())
 		return
 	}
 
-	json_line, err := json.Marshal(posts)
+	type Answer struct {
+		TotalCount int             `json:"total_count"`
+		Posts      []dbaccess.Post `json:"posts"`
+	}
+	var answer Answer = Answer{Posts: posts, TotalCount: total_count}
+
+	json_line, err := json.Marshal(answer)
 	if err != nil {
 		Send503(rw, r, err.Error())
 		return

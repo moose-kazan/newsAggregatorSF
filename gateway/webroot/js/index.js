@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 loading: true,
                 errored: false,
                 page: this.getPage(),
+                pageCount: 0,
                 searchQuery: this.getQuery()
             };
         },
@@ -26,7 +27,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
             fetchNews() {
                 axios
                 .get('/api/news/search?page=' + this.page + '&query=' + encodeURIComponent(this.searchQuery))
-                .then(response => (this.posts = response.data))
+                .then(response => (
+                    this.posts = response.data.posts,
+                    this.pageCount = response.data.page_count
+                ))
                 .catch(error => {
                     console.log(error);
                     this.errored = true;
@@ -62,7 +66,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             },
             updatePage() {
                 this.page = this.getPage()
-                this.searchQuery = this.GetQuery()
+                this.searchQuery = this.getQuery()
                 this.fetchNews();    
             }
         },

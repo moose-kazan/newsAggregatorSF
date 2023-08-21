@@ -34,6 +34,11 @@ type Post struct {
 	Guid    string
 }
 
+type PostsSearch struct {
+	TotalCount int    `json:"total_count"`
+	Posts      []Post `json:"posts"`
+}
+
 type Comment struct {
 	Id          int
 	IdPost      int

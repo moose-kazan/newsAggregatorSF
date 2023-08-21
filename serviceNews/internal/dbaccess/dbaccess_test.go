@@ -160,13 +160,17 @@ func TestStore_PostSearch(t *testing.T) {
 			t.Errorf("Can't insert posts: %v", err)
 			return
 		}
-		posts, err := s.PostSearch(10, 0, "")
+		posts, total_count, err := s.PostSearch(2, 0, "")
 		if err != nil {
 			t.Errorf("Can't gat posts: %v", err)
 			return
 		}
-		if len(posts) != 4 {
-			t.Errorf("Expected 4 posts, but found: %v", len(posts))
+		if total_count != 4 {
+			t.Errorf("Expected total_count = 4, but found: %v", total_count)
+			return
+		}
+		if len(posts) != 2 {
+			t.Errorf("Expected 2 posts, but found: %v", len(posts))
 			return
 		}
 		if posts[0].Id != 2 {

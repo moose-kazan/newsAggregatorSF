@@ -126,8 +126,9 @@ func (s *Store) PostAdd(p Post) (int, error) {
 	return id, nil
 }
 
-func (s *Store) PostSearch(count int, offset int, searchQuery string) ([]Post, error) {
+func (s *Store) PostSearch(count int, offset int, searchQuery string) ([]Post, int, error) {
 	rv := make([]Post, 0)
+	var rvTc int
 	var sql string = `SELECT
 			id,
 			source,
@@ -135,7 +136,8 @@ func (s *Store) PostSearch(count int, offset int, searchQuery string) ([]Post, e
 			content,
 			pubTime,
 			link,
-			guid
+			guid,
+			COUNT(*) OVER() AS total_count
 		FROM posts `
 	if searchQuery != "" {
 		sql += ` WHERE title ILIKE $3 `
@@ -152,7 +154,7 @@ func (s *Store) PostSearch(count int, offset int, searchQuery string) ([]Post, e
 		r, err = s.db.Query(context.Background(), sql, offset, count)
 	}
 	if err != nil {
-		return rv, err
+		return rv, rvTc, err
 	}
 	for r.Next() {
 		var p Post
@@ -164,11 +166,12 @@ func (s *Store) PostSearch(count int, offset int, searchQuery string) ([]Post, e
 			&p.PubTime,
 			&p.Link,
 			&p.Guid,
+			&rvTc,
 		)
 		rv = append(rv, p)
 	}
 	r.Close()
-	return rv, nil
+	return rv, rvTc, nil
 }
 
 func (s *Store) PostGetById(id int) (Post, error) {
