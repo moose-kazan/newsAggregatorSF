@@ -40,11 +40,10 @@ type PostsSearch struct {
 }
 
 type Comment struct {
-	Id          int
-	IdPost      int
-	Content     string
-	PubTime     int64
-	FlagObscene bool
+	Id      int
+	IdPost  int
+	Content string
+	PubTime int64
 }
 
 type ModerResult struct {

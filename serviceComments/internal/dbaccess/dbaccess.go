@@ -12,11 +12,10 @@ type Store struct {
 }
 
 type Comment struct {
-	Id          int
-	IdPost      int
-	Content     string
-	PubTime     int64
-	FlagObscene bool
+	Id      int
+	IdPost  int
+	Content string
+	PubTime int64
 }
 
 func New(dsn string) (*Store, error) {
@@ -33,9 +32,9 @@ func New(dsn string) (*Store, error) {
 func (s *Store) Add(id_post int, content string) (Comment, error) {
 	var rv Comment
 	var sql string = `INSERT INTO comments
-		(id_post, content, pubTime, flag_obscene) VALUES
-		($1, $2, EXTRACT(EPOCH FROM NOW()) * 1000, false)
-		RETURNING id, id_post, content, pubTime, flag_obscene`
+		(id_post, content, pubTime) VALUES
+		($1, $2, EXTRACT(EPOCH FROM NOW()) * 1000)
+		RETURNING id, id_post, content, pubTime`
 	err := s.db.QueryRow(
 		context.Background(),
 		sql,
@@ -46,7 +45,6 @@ func (s *Store) Add(id_post int, content string) (Comment, error) {
 		&rv.IdPost,
 		&rv.Content,
 		&rv.PubTime,
-		&rv.FlagObscene,
 	)
 	if err != nil {
 		return rv, err
@@ -60,8 +58,7 @@ func (s *Store) GetForPost(idPost int) ([]Comment, error) {
 						id,
 						id_post,
 						content,
-						pubTime,
-						flag_obscene
+						pubTime
 					FROM comments
 					WHERE id_post = $1
 					ORDER BY pubTime`
@@ -76,7 +73,6 @@ func (s *Store) GetForPost(idPost int) ([]Comment, error) {
 			&item.IdPost,
 			&item.Content,
 			&item.PubTime,
-			&item.FlagObscene,
 		)
 
 		if err != nil {
@@ -85,36 +81,5 @@ func (s *Store) GetForPost(idPost int) ([]Comment, error) {
 		rv = append(rv, item)
 	}
 	r.Close()
-	return rv, nil
-}
-
-func (s *Store) Update(c Comment) (Comment, error) {
-	var rv Comment
-	var sql string = `UPDATE comments
-		SET
-			id_post = $2,
-			content = $3,
-			pubTime = $4,
-			flag_obscene = $5
-		WHERE id = $1
-		RETURNING id, id_post, content, pubTime, flag_obscene`
-	err := s.db.QueryRow(
-		context.Background(),
-		sql,
-		c.Id,
-		c.IdPost,
-		c.Content,
-		c.PubTime,
-		c.FlagObscene,
-	).Scan(
-		&rv.Id,
-		&rv.IdPost,
-		&rv.Content,
-		&rv.PubTime,
-		&rv.FlagObscene,
-	)
-	if err != nil {
-		return rv, err
-	}
 	return rv, nil
 }

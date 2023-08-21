@@ -44,15 +44,15 @@ func TestStore_GetForPost(t *testing.T) {
 			return
 		}
 		var sql string = `INSERT INTO comments
-				(id, id_post, content, pubTime, flag_obscene)
+				(id, id_post, content, pubTime)
 			VALUES
-				(1, 10, 'comment 1/10', 1692481427, false),
-				(2, 20, 'comment 2/20', 1692481425, false),
-				(3, 10, 'comment 3/10', 1692481429, false),
-				(4, 10, 'comment 4/10', 1692481429, false),
-				(5, 20, 'comment 5/20', 1692481439, false),
-				(6, 30, 'comment 6/30', 1692481459, false),
-				(7, 40, 'comment 7/40', 1692481469, false);`
+				(1, 10, 'comment 1/10', 1692481427),
+				(2, 20, 'comment 2/20', 1692481425),
+				(3, 10, 'comment 3/10', 1692481429),
+				(4, 10, 'comment 4/10', 1692481429),
+				(5, 20, 'comment 5/20', 1692481439),
+				(6, 30, 'comment 6/30', 1692481459),
+				(7, 40, 'comment 7/40', 1692481469);`
 		_, err = s.db.Exec(context.Background(), sql)
 		if err != nil {
 			t.Errorf("Can't insert comments: %v", err)

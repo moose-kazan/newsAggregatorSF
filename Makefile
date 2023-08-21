@@ -7,7 +7,7 @@ test:
 	cd serviceModerate && make test
 
 build:
-	docker-composr build
+	docker-compose build
 
 run: build
 	docker-compose up

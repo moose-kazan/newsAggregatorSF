@@ -40,8 +40,7 @@
                 <div v-if="nocomments" role="alert" class="info">
                     <p>No comments fot this post</p>
                 </div>
-                <div v-bind:class="{ obscene: comment.FlagObscene, comment: true }" v-for="comment in comments">
-                    <!-- v-bind:class="obscene: comment.FlagObscene, comment: true" -->
+                <div class="comment" v-for="comment in comments">
                     <p class="pubtime">{{ (new Date(comment.PubTime*1000)).toString() }}</p>
                     <div v-html="comment.Content"></div>
                 </div>
