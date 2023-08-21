@@ -19,7 +19,7 @@ var log *logger.Logger
 func Send503(rw http.ResponseWriter, r *http.Request, msg string) {
 	rw.WriteHeader(http.StatusInternalServerError)
 	fmt.Fprintln(rw, msg)
-	log.Error(r.Header.Get("X-Request-Id"), msg)
+	log.Error(r, msg)
 }
 
 func webApiCommentAdd(rw http.ResponseWriter, r *http.Request) {
@@ -77,7 +77,7 @@ func webApiCommentGetForPost(rw http.ResponseWriter, r *http.Request) {
 
 func logHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Info(r.Header.Get("X-Request-Id"), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+		log.Info(r, fmt.Sprintf("%s %s", r.Method, r.RequestURI))
 		next.ServeHTTP(w, r)
 	})
 }

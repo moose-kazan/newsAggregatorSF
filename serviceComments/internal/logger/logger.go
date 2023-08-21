@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 )
 
@@ -15,14 +16,14 @@ func New(prefix string) *Logger {
 	return &l
 }
 
-func (l *Logger) formatMessage(reqId string, msg string) string {
-	return fmt.Sprintf("%s: [%s] %s", l.prefix, reqId, msg)
+func (l *Logger) formatMessage(req *http.Request, msg string) string {
+	return fmt.Sprintf("%s: [%s] [%s] %s", l.prefix, req.RemoteAddr, req.Header.Get("X-Request-Id"), msg)
 }
 
-func (l *Logger) Info(reqId string, msg string) {
-	fmt.Println(l.formatMessage(reqId, msg))
+func (l *Logger) Info(req *http.Request, msg string) {
+	fmt.Println(l.formatMessage(req, msg))
 }
 
-func (l *Logger) Error(reqId string, msg string) {
-	fmt.Fprintln(os.Stderr, l.formatMessage(reqId, msg))
+func (l *Logger) Error(req *http.Request, msg string) {
+	fmt.Fprintln(os.Stderr, l.formatMessage(req, msg))
 }
