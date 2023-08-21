@@ -23,6 +23,10 @@ services:
       dockerfile: "./Dockerfile"
     ports:
       - 8080:8080
+    depends_on:
+      - srvnews
+      - srvcomments
+      - srvmoderate
   
   srvnews:
     container_name: "news-aggregator-srvnews"
@@ -32,6 +36,8 @@ services:
       dockerfile: "./Dockerfile"
     volumes:
       - "./data/lock:/lock:rw"
+    depends_on:
+      - db
 
   srvcomments:
     container_name: "news-aggregator-srvcomments"
@@ -41,6 +47,8 @@ services:
       dockerfile: "./Dockerfile"
     volumes:
       - "./data/lock:/lock:rw"
+    depends_on:
+      - db
 
   srvmoderate:
     container_name: "news-aggregator-srvmoderate"

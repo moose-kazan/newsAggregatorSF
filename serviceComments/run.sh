@@ -9,6 +9,7 @@ while true; do
     sleep 3
 done
 
+echo "Load comments schema..."
 test ! -f /lock/comments-schema.lock && \
     psql postgresql://postgres:postgres@${DB_HOST}:${DB_PORT}/multirss < ./db_schema.sql && \
     touch /lock/comments-schema.lock

@@ -9,10 +9,12 @@ while true; do
     sleep 3
 done
 
+echo "Load news schema..."
 test ! -f /lock/news-schema.lock && \
     psql postgresql://postgres:postgres@${DB_HOST}:${DB_PORT}/multirss < ./db_schema.sql && \
     touch /lock/news-schema.lock
 
+echo "Load news data..."
 test ! -f /lock/news-data.lock && \
     psql postgresql://postgres:postgres@${DB_HOST}:${DB_PORT}/multirss < ./db_data.sql && \
     touch /lock/news-data.lock
